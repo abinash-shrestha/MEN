@@ -1,6 +1,8 @@
 const express = require('express');
 const app = express();
 const morgan = require('morgan');
+const userModel = require('./models/user');
+const dbConnection = require('./config/db');
 
 app.set('view engine', 'ejs');
 app.use(morgan('dev'));
@@ -33,6 +35,10 @@ app.get('/', (req, res) => {
   res.render('index');
 });
 
+app.get('/register', (req, res) => {
+  res.render('register');
+});
+
 app.get('/about', (req, res) => {
   res.send('this is about page');
 });
@@ -44,6 +50,35 @@ app.get('/profile', (req, res) => {
 app.post('/get-form-data', (req, res) => {
   console.log(req.body);
   res.send('Data Received');
+});
+
+app.post('/register', async (req, res) => {
+  const { username, email, password } = req.body;
+  const newUser = await userModel.create({
+    username: username,
+    email: email,
+    password: password,
+  });
+  res.send(newUser);
+});
+
+app.get('/get-users', (req, res) => {
+  userModel.findOne({ username: 'c' }).then((user) => {
+    res.send(user);
+  });
+});
+
+app.get('/update-user', async (req, res) => {
+  await userModel
+    .findOneAndUpdate(
+      {
+        username: 'a',
+      },
+      {
+        email: 'ab@ab',
+      }
+    )
+    .then(res.send('user updated'));
 });
 
 app.listen(3000);

@@ -96,14 +96,116 @@ app.get('/',
     app.use(express.urlencoded({extended:true}))
   ```
 - ```
-  app.post('/get-form-data',(req, res) => {
-      console.log(req.body);
-      res.send('data received')
+    app.post('/get-form-data',(req, res) => {
+        console.log(req.body);
+        res.send('data received')
+    })
+  ```
+
+## Integrating Static Frontend Content
+
+- create a public folder and create css, js files
+- use static method `app.use(express.static('public'));`
+
+## MongoDB
+
+- `npm i mongoose`
+- create models folder and create a user.js file inside it
+- creating user schema and model
+
+  - models/user.js
+
+    ```
+    const mongoose = require('mongoose')
+    const userSchema = new mongoose.Schema({
+    username: String,
+    email: String,
+    password: String,
+    })
+
+    const userModel = mongoose.Model('user', userSchema);
+
+    module.exports = userModel // import userModel in app.js //
+    ```
+
+- Connecting to database
+- create config folder and db.js file inside it
+
+  - config/db.js
+
+    ```
+    const mongoose = require("mongoose")
+    const connection = mongoose.connect('mongodb://0.0.0.0/men').then(()=>{console.log('connected to database')})
+
+    module.exports = connection // import connection in app.js //
+    ```
+
+- Getting data from form and inserting into database
+
+  - app.js(getting data from register form)
+
+  ```
+  app.get('/register', (req, res)=>{
+    res.render("register") //first create register.ejs file in views
+  })
+
+  app.post('/register', async (req, res)=>{
+    const {username, email, password} = req.body
+    const newUser = await userModel.create({
+      username: username,
+      email: email,
+      password: password
+    })
+
+    res.send('user registered') or res.send(newUser)
+
   })
   ```
 
-  ## Integrating Static Frontend Content
+## CRUD
 
-  - create a public folder and create css, js files
-  - use static method `app.use(express.static('public'));`
+- CREATE (already done above)
+- READ
+
+  - find() - reads all data unless specified which data to find
+  - find({username:'a'})
+
+    ```
+    // reads all user and displays them
+    app.get('get-users', (req, res)=>{
+      userModel.find().then((users)=>{
+        res.send(users)
+      })
+    })
+
+    // finds specific user
+    app.get('get-users', (req, res)=>{
+      userModel.find({
+        username:'a'
+      }).then((users)=>res.send(users))
+    })
+
+    // finds only one user and displays the first one (created first) if multiple same username are found
+
+    app.get('/get-users', (req, res)=>{
+      userModel.findOne({
+        username:'c'
+        }).then((users)=>res.send  (users))
+    })
+    ```
+
+- UPDATE
+  - findOneAndUpdate()
+  - ```
+    // finds specified user and updates email of that user
+    app.get('/update-user', async(req, res)=>{
+      await userModel.findOneAndUpdate({
+        username:'a'
+      },
+      {
+        email:'ab@ab'
+      })
+    }).then(res.send('users email is updated'))
+    ```
+- DELETE
   -
